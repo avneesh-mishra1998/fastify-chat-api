@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id                 Int          @id @default(autoincrement())
+  full_name          String       @default("")
+  username           String       @unique
+  phone              String       @unique
+  password           String
+  role               String       @default("USER")
+  avatar             String       @default("")
+  time_zone          String       @default("UTC")
+  login_type         String       @default("mobile")
+  referer            String       @default("")
+  refreshToken       String?
+  created_at         DateTime     @default(now()) @db.Timestamp(0)
+  updated_at         DateTime     @updatedAt
+  userChats          Chat[]
+  chat_message       ChatMessage[]
+}
+
+model Chat {
+  id            Int          @id @default(autoincrement())
+  chat_name     String
+  isGroupChat   Boolean      @default(false)
+  participants  String
+  admin_id      Int
+  created_at    DateTime     @default(now()) @db.Timestamp(0)
+  updated_at    DateTime     @updatedAt
+  messages      ChatMessage[]
+  admin          User         @relation(fields: [admin_id], references: [id])
+}
+
+model ChatMessage {
+  id              Int        @id @default(autoincrement())
+  sender_id       Int
+  chat_id         Int
+  content         String     @default("")
+  sendTime        DateTime   @default(now())
+  readStatus      Boolean    @default(false)
+  attachments     Attachments[]
+  chat            Chat       @relation(fields: [chat_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  sender            User         @relation(fields: [sender_id], references: [id])
+}
+
+model Attachments {
+  id               Int        @id @default(autoincrement())
+  url              String
+  localPath        String
+  chat_message_id  Int
+  chatMessage      ChatMessage @relation(fields: [chat_message_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
